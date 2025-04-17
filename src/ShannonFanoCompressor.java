@@ -37,6 +37,7 @@ public class ShannonFanoCompressor {
         }
 
         // Using obtained frequencies to estimate probabilities
+        // TODO: This step might not be necessary, it waste of time
         ArrayList<Block> blocks = new ArrayList<>();
         frequencyMap.forEach((key, value) -> {
             blocks.add(new Block(key, (double) value / totalBlocks));
