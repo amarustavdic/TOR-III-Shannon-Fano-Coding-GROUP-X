@@ -59,13 +59,17 @@ Including the codebook ensures that the compressed file is fully self-contained 
 
 ---
 
-### Compression Outcome
+### Compression
 
-For a realistic test case, we used an 800-page `.pdf` book (approx. 52.8 MB). Results:
+###### Introduction to Algorithms 4th edition.pdf
 
-**Original Size**: 52,851,768 bytes
-
-**Compressed Size**: 50,105,466 bytes
-
-**Difference**: ≈2.7 MB saved
+| Format       | Tool Used | Output File Size | Compression Ratio |
+| ------------ | --------- | ---------------- | ----------------- |
+| Original PDF | -         | 12261102         | -                 |
+| Shannon-Fano | Our app   | 12447811         | 1.01522775        |
+| `.gz`        |           | 11146096         | 0.909061518       |
+| `.bz2`       |           |                  |                   |
+| `.xz`        |           |                  |                   |
+| `.7z`        |           |                  |                   |
+| `.djvu`      |           | 12953445         | 1.056466621       |
 
