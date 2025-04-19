@@ -14,9 +14,9 @@ public class Main {
 //        size(uncompressedTxtFile, compressedTxtFile);
 
 
-
-        Encoder encoder = new Encoder(16);
-        encoder.encode("asdf asdf asdf asdf".getBytes());
+        byte[] data = "asdf asdf asdf".getBytes();
+        Encoder encoder = new Encoder(data, 16);
+        byte[] result = encoder.encode();
 
 
 
