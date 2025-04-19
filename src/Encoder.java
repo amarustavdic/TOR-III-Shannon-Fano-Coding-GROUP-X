@@ -1,3 +1,5 @@
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 public class Encoder {
@@ -14,23 +16,32 @@ public class Encoder {
         this.uniqueBlocks = new HashMap<>();
     }
 
-    public byte[] encode() {
+    public byte[] encode() throws IOException {
         String bits = bytesToBinaryString(data);
         LinkedList<Block> blocks = bitsToBlocks(bits);
         ArrayList<Block> unique = new ArrayList<>(uniqueBlocks.values());
         Collections.sort(unique);
         divide(unique, 0, unique.size() - 1);
 
-        double t = 0;
-        for (var u : unique) {
-            System.out.println(u);
-            t += u.probability;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        // Write codebook header (number of entries)
+        out.write((uniqueBlocks.size() >> 24) & 0xFF);
+        out.write((uniqueBlocks.size() >> 16) & 0xFF);
+        out.write((uniqueBlocks.size() >> 8) & 0xFF);
+        out.write(uniqueBlocks.size() & 0xFF);
+
+        // Write each codebook entry
+        for (Block block : uniqueBlocks.values()) {
+            byte[] entry = block.getCodebookEntry();
+            out.write(entry);
         }
 
+        // Write the encoded bitstream after the codebook
+        byte[] encodedData = binaryStringToByteArray(blocksToEncodedBitstream(blocks));
+        out.write(encodedData);
 
-
-        String encoded = blocksToEncodedBitstream(blocks);
-        return binaryStringToByteArray(encoded);
+        return out.toByteArray();
     }
 
     private String byteToBinaryString(byte data) {
@@ -114,6 +125,7 @@ public class Encoder {
     }
 
     class Block implements Comparable<Block> {
+
         private final String blockBits;
         private int frequency = 0;
         private double probability = 0;
@@ -148,6 +160,36 @@ public class Encoder {
         public int compareTo(Block block) {
             if (this.probability ==  block.probability) return 0;
             return this.probability > block.probability ? -1 : 1;
+        }
+
+        public byte[] getCodebookEntry() {
+            int blockLenBits = blockBits.length();
+            int codewordLenBits = codeword.length();
+
+            int blockBytes = (int) Math.ceil(blockLenBits / 8.0);
+            int codewordBytes = (int) Math.ceil(codewordLenBits / 8.0);
+
+            int totalSize = 1 + blockBytes + 1 + codewordBytes;
+            byte[] entry = new byte[totalSize];
+
+            int i = 0;
+
+            // Write block bits length
+            entry[i++] = (byte) blockLenBits;
+
+            // Write block bits
+            byte[] blockPacked = binaryStringToByteArray(blockBits);
+            System.arraycopy(blockPacked, 0, entry, i, blockBytes);
+            i += blockBytes;
+
+            // Write codeword bits length
+            entry[i++] = (byte) codewordLenBits;
+
+            // Write codeword bits
+            byte[] codewordPacked = binaryStringToByteArray(codeword.toString());
+            System.arraycopy(codewordPacked, 0, entry, i, codewordBytes);
+
+            return entry;
         }
 
     }

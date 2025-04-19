@@ -1,41 +1,25 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
 
-//        File uncompressedTxtFile = new File("resources/example.txt");
-//        Encoder encoder = new Encoder(uncompressedTxtFile);
-//        File compressedTxtFile = encoder.encode();
-//
-//        size(uncompressedTxtFile, compressedTxtFile);
+        File file = new File("/home/solo/Dropbox/Elements-of-Information-Theory.pdf");
 
-
-        byte[] data = "asdf asdf asdf sdfk".getBytes();
+        byte[] data = Files.readAllBytes(file.toPath());
         Encoder encoder = new Encoder(data, 16);
         byte[] result = encoder.encode();
 
-        System.out.println(new String(result));
+        System.out.println("Original: " + data.length + " bytes");
+        System.out.println("Encoded: " + result.length + " bytes");
+
+        // System.out.println(new String(data));
+        // System.out.println(new String(result));
 
 
 
-
-
-
-
-
-
-
-    }
-
-    public static void size(File original, File compressed) throws IOException {
-        byte[] a = Files.readAllBytes(Path.of(original.toURI()));
-        byte[] b = Files.readAllBytes(Path.of(compressed.toURI()));
-        System.out.println("original: " + a.length + " bytes");
-        System.out.println("compressed: " + b.length + " bytes");
     }
 
 }
