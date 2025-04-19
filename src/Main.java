@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Main {
 
@@ -14,11 +15,9 @@ public class Main {
 
         System.out.println("Original: " + data.length + " bytes");
         System.out.println("Encoded: " + result.length + " bytes");
+        System.out.println("Diff.: " + (data.length - result.length) + " bytes");
 
-        // System.out.println(new String(data));
-        // System.out.println(new String(result));
-
-
+        Files.write(Paths.get("resources/compressed.sf"), result);
 
     }
 
