@@ -27,7 +27,10 @@ public class Encoder {
             t += u.probability;
         }
 
-        return null;
+
+
+        String encoded = blocksToEncodedBitstream(blocks);
+        return binaryStringToByteArray(encoded);
     }
 
     private String byteToBinaryString(byte data) {
@@ -87,6 +90,27 @@ public class Encoder {
 
         divide(blocks, start, split);
         divide(blocks, split + 1, end);
+    }
+
+    private String blocksToEncodedBitstream(LinkedList<Block> blocks) {
+        StringBuilder sb = new StringBuilder();
+        for (Block block : blocks) sb.append(block.codeword);
+        return sb.toString();
+    }
+
+    private byte[] binaryStringToByteArray(String binary) {
+        int length = binary.length();
+        int byteLength = (length + 7) / 8;
+        byte[] byteArray = new byte[byteLength];
+
+        for (int i = 0; i < byteLength; i++) {
+            int start = i * 8;
+            int end = Math.min(start + 8, length);
+            String byteString = binary.substring(start, end);
+            if (byteString.length() < 8) byteString = String.format("%-8s", byteString).replace(' ', '0');
+            byteArray[i] = (byte) Integer.parseInt(byteString, 2);
+        }
+        return byteArray;
     }
 
     class Block implements Comparable<Block> {

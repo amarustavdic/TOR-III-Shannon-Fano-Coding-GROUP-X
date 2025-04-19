@@ -12,3 +12,16 @@
 ### Additional Requirements (just for fun)
 
 - Try making custom file such that you can compress any data and also alongside the compressed data save the dictionary that is needed for decompression.
+
+
+### Structure of encoded file
+```
++---------------------+
+| Header (Codebook)   |
++---------------------+
+| Metadata (optional) |
++---------------------+
+| Encoded Bitstream   |
++---------------------+
+```
+If you ask me this should be made like so, to have more realistic comparison, since without codebook, the encoded data is useless.

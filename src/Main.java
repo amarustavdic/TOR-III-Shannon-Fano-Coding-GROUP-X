@@ -14,10 +14,11 @@ public class Main {
 //        size(uncompressedTxtFile, compressedTxtFile);
 
 
-        byte[] data = "asdf asdf asdf".getBytes();
+        byte[] data = "asdf asdf asdf sdfk".getBytes();
         Encoder encoder = new Encoder(data, 16);
         byte[] result = encoder.encode();
 
+        System.out.println(new String(result));
 
 
 
