@@ -1,17 +1,27 @@
+import shannonfano.Encoder;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        // For now using simple string as data, but ideally uncompressed should be obtained from file
-        byte[] uncompressed = "Hello there, it is nice to say hello, you know hello there!".getBytes();
-        var compressor = new ShannonFanoCompressor(uncompressed);
-        byte[] compressed = compressor.compress();
+        File uncompressedTxtFile = new File("resources/example.txt");
+        Encoder encoder = new Encoder(uncompressedTxtFile);
+        File compressedTxtFile = encoder.encode();
 
-        compressor.log();
-        System.out.println();
-        System.out.println("Uncompressed: " + uncompressed.length + " bytes");
-        System.out.println("Compressed: " + compressed.length + " bytes");
+        size(uncompressedTxtFile, compressedTxtFile);
 
+    }
+
+    public static void size(File original, File compressed) throws IOException {
+        byte[] a = Files.readAllBytes(Path.of(original.toURI()));
+        byte[] b = Files.readAllBytes(Path.of(compressed.toURI()));
+        System.out.println("original: " + a.length + " bytes");
+        System.out.println("compressed: " + b.length + " bytes");
     }
 
 }
