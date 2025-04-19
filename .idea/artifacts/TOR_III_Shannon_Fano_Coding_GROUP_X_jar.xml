@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TOR-III-Shannon-Fano-Coding-GROUP-X:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/TOR_III_Shannon_Fano_Coding_GROUP_X_jar</output-path>
+    <root id="archive" name="TOR-III-Shannon-Fano-Coding-GROUP-X.jar">
+      <element id="module-output" name="TOR-III-Shannon-Fano-Coding-GROUP-X" />
+    </root>
+  </artifact>
+</component>
