@@ -17,7 +17,11 @@ public class Main {
         byte[] result = encoder.encode();
 
         System.out.println("Original: " + data.length + " bytes");
-        System.out.println("Encoded: " + result.length + " bytes");
+        System.out.println("-----------------------------------------");
+        System.out.println("Codebook Size: " + encoder.getCodebookSize() + " bytes");
+        System.out.println("Compressed Src: " + (result.length - encoder.getCodebookSize()) + " bytes");
+        System.out.println("Combined Compressed: " + result.length + " bytes");
+        System.out.println("-----------------------------------------");
         System.out.println("Diff.: " + (data.length - result.length) + " bytes");
 
         Files.write(Paths.get(outputFileName), result);

@@ -8,6 +8,7 @@ public class Encoder {
     private final int blockSize;
     private final int totalBlocks;
     private final HashMap<String, Block> uniqueBlocks;
+    private int codebookSize = 0;
 
     public Encoder(byte[] data, int blockSize) {
         this.data = data;
@@ -36,6 +37,8 @@ public class Encoder {
             byte[] entry = block.getCodebookEntry();
             out.write(entry);
         }
+
+        this.codebookSize = out.size();
 
         // Write the encoded bitstream after the codebook
         byte[] encodedData = binaryStringToByteArray(blocksToEncodedBitstream(blocks));
@@ -122,6 +125,10 @@ public class Encoder {
             byteArray[i] = (byte) Integer.parseInt(byteString, 2);
         }
         return byteArray;
+    }
+
+    public int getCodebookSize() {
+        return this.codebookSize;
     }
 
     class Block implements Comparable<Block> {
