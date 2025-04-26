@@ -24,6 +24,10 @@ public class Encoder {
         Collections.sort(unique);
         divide(unique, 0, unique.size() - 1);
 
+
+        for (var block : unique) System.out.println(block);
+
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         // Write codebook header (number of entries)
