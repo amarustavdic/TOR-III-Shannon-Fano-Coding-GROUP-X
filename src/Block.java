@@ -40,13 +40,17 @@ public class Block implements Comparable<Block> {
     @Override
     public String toString() {
         return String.format(
-                "%-" + size + "s | f: %4d | p: %7.6f | ic: %7.6f | w: %s",
-                bits, frequency, probability, informationContent, codeword
+                "%-" + size + "s | f: %4d | p: %7.6f | w: %s",
+                bits, frequency, probability, codeword
         );
     }
 
     public double getProbability() {
         return probability;
+    }
+
+    public double getInformationContent() {
+        return informationContent;
     }
 
     public String getCodeword() {
