@@ -45,4 +45,7 @@ public class Block implements Comparable<Block> {
         );
     }
 
+    public double getProbability() {
+        return probability;
+    }
 }

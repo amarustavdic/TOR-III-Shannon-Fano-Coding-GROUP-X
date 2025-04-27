@@ -1,104 +1,67 @@
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 public class Encoder {
 
-    private final byte[] data;
-    private final int blockSize;
-    private final int totalBlocks;
-    private final HashMap<String, Block> uniqueBlocks;
-    private int codebookSize = 0;
+    private final int n; // Total number of blocks
+    private final HashMap<String, Block> map = new HashMap<>();
+    private final LinkedList<Block> blocks = new LinkedList<>();
+    private final ArrayList<Block> unique;
 
     public Encoder(byte[] data, int blockSize) {
-        this.data = data;
-        this.blockSize = blockSize;
-        this.totalBlocks = (int) Math.ceil(data.length * 8 / (double) blockSize);
-        this.uniqueBlocks = new HashMap<>();
-    }
+        Bits dataBits = new Bits(data);
+        this.n = (int) Math.ceil((double) dataBits.size() / blockSize);
 
-    public byte[] encode() throws IOException {
-        String bits = bytesToBinaryString(data);
-        LinkedList<Block> blocks = bitsToBlocks(bits);
-        ArrayList<Block> unique = new ArrayList<>(uniqueBlocks.values());
-        Collections.sort(unique);
-        divide(unique, 0, unique.size() - 1);
+        // Obtain sequence of blocks and track unique blocks
+        Iterator<Integer> dbi = dataBits.iterator();
+        StringBuilder sb = new StringBuilder(blockSize);
+        while (dbi.hasNext()) {
+            sb.append(dbi.next() == 1 ? '1' : '0');
 
-
-        for (var block : unique) System.out.println(block);
-
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        // Write codebook header (number of entries)
-        out.write((uniqueBlocks.size() >> 24) & 0xFF);
-        out.write((uniqueBlocks.size() >> 16) & 0xFF);
-        out.write((uniqueBlocks.size() >> 8) & 0xFF);
-        out.write(uniqueBlocks.size() & 0xFF);
-
-        // Write each codebook entry
-        for (Block block : uniqueBlocks.values()) {
-            byte[] entry = block.getCodebookEntry();
-            out.write(entry);
-        }
-
-        this.codebookSize = out.size();
-
-        // Write the encoded bitstream after the codebook
-        byte[] encodedData = binaryStringToByteArray(blocksToEncodedBitstream(blocks));
-        out.write(encodedData);
-
-        return out.toByteArray();
-    }
-
-    private String byteToBinaryString(byte data) {
-        char[] binary = new char[8];
-        for (int i = 7; i >= 0; i--) binary[7 - i] = ((data >> i) & 1) == 1 ? '1' : '0';
-        return new String(binary);
-    }
-
-    private String bytesToBinaryString(byte[] data) {
-        StringBuilder sb = new StringBuilder();
-        for (byte entry : data) sb.append(byteToBinaryString(entry));
-        return sb.toString();
-    }
-
-    /**
-     * Coverts stream of bits in list of blocks, and in the meantime,
-     * it keeps track of frequencies, for the blocks in a global map.
-     * @param dataBits data bit stream, provided as string.
-     * @return list of blocks, data is in same order as in the input.
-     */
-    private LinkedList<Block> bitsToBlocks(String dataBits) {
-        LinkedList<Block> blocks = new LinkedList<>();
-        char[] blockBits = new char[blockSize];
-        Arrays.fill(blockBits, '0');
-        for (int i = 0, j = 0; j < dataBits.length(); i++, j++) {
-            if (i > blockSize - 1) {
-                Block block = uniqueBlocks.computeIfAbsent(new String(blockBits), Block::new);
-                block.incFrequency();
+            if (sb.length() == 16) {
+                Block block = map.computeIfAbsent(
+                        sb.toString(),
+                        b -> new Block(sb.toString(), 16)
+                );
+                block.update(n);
                 blocks.add(block);
-                blockBits = new char[blockSize];
-                Arrays.fill(blockBits, '0');
-                i = 0;
+                sb.setLength(0);
             }
-            blockBits[i] = dataBits.charAt(j);
         }
-        Block block = uniqueBlocks.computeIfAbsent(new String(blockBits), Block::new);
-        block.incFrequency();
-        blocks.add(block);
-        return blocks;
+
+        if (!sb.isEmpty()) {
+            Block block = map.computeIfAbsent(
+                    sb.toString(),
+                    b -> new Block(sb.toString(), 16)
+            );
+            block.update(n);
+            blocks.add(block);
+        }
+
+        // Unique blocks have to be sorted based on probabilities
+        this.unique = new ArrayList<>(map.values());
+        Collections.sort(this.unique);
+
     }
 
-    private void divide(List<Block> blocks, int start, int end) {
+    public byte[] encode() {
+        shannonFano(unique, 0, unique.size() - 1);
+
+        // TODO
+
+        return null;
+    }
+
+    private void shannonFano(List<Block> blocks, int start, int end) {
         if (start >= end) return;
         double total = 0;
-        for (int i = start; i <= end; i++) total += blocks.get(i).probability;
+        for (int i = start; i <= end; i++) total += blocks.get(i).getProbability();
 
         double halfTotal = total / 2, sum = 0;
         int split = start;
-        while (split < end && sum + blocks.get(split).probability <= halfTotal) {
-            sum += blocks.get(split++).probability;
+
+        // Find split point where the cumulative probability is closest to halfTotal
+        while (split < end && sum + blocks.get(split).getProbability() <= halfTotal) {
+            sum += blocks.get(split++).getProbability();
         }
 
         if (split == start || split == end) split = (start + end) / 2;
@@ -106,103 +69,17 @@ public class Encoder {
         for (int i = start; i <= split; i++) blocks.get(i).appendZero();
         for (int i = split + 1; i <= end; i++) blocks.get(i).appendOne();
 
-        divide(blocks, start, split);
-        divide(blocks, split + 1, end);
+        shannonFano(blocks, start, split);
+        shannonFano(blocks, split + 1, end);
     }
 
-    private String blocksToEncodedBitstream(LinkedList<Block> blocks) {
-        StringBuilder sb = new StringBuilder();
-        for (Block block : blocks) sb.append(block.codeword);
-        return sb.toString();
-    }
-
-    private byte[] binaryStringToByteArray(String binary) {
-        int length = binary.length();
-        int byteLength = (length + 7) / 8;
-        byte[] byteArray = new byte[byteLength];
-
-        for (int i = 0; i < byteLength; i++) {
-            int start = i * 8;
-            int end = Math.min(start + 8, length);
-            String byteString = binary.substring(start, end);
-            if (byteString.length() < 8) byteString = String.format("%-8s", byteString).replace(' ', '0');
-            byteArray[i] = (byte) Integer.parseInt(byteString, 2);
-        }
-        return byteArray;
-    }
-
-    public int getCodebookSize() {
-        return this.codebookSize;
-    }
-
-    class Block implements Comparable<Block> {
-
-        private final String blockBits;
-        private int frequency = 0;
-        private double probability = 0;
-        private final StringBuilder codeword = new StringBuilder();
-
-        public Block(String blockBits) {
-            this.blockBits = blockBits;
-        }
-
-        public void incFrequency() {
-            frequency++;
-            probability = frequency / (double) totalBlocks;
-        }
-
-        public void appendZero() {
-            codeword.append('0');
-        }
-
-        public void appendOne() {
-            codeword.append('1');
-        }
-
-        @Override
-        public String toString() {
-            return String.format(
-                    "%-" + blockSize + "s | f: %4d | p: %7.6f | w: %s",
-                    blockBits, frequency, probability, codeword
-            );
-        }
-
-        @Override
-        public int compareTo(Block block) {
-            if (this.probability ==  block.probability) return 0;
-            return this.probability > block.probability ? -1 : 1;
-        }
-
-        public byte[] getCodebookEntry() {
-            int blockLenBits = blockBits.length();
-            int codewordLenBits = codeword.length();
-
-            int blockBytes = (int) Math.ceil(blockLenBits / 8.0);
-            int codewordBytes = (int) Math.ceil(codewordLenBits / 8.0);
-
-            int totalSize = 1 + blockBytes + 1 + codewordBytes;
-            byte[] entry = new byte[totalSize];
-
-            int i = 0;
-
-            // Write block bits length
-            entry[i++] = (byte) blockLenBits;
-
-            // Write block bits
-            byte[] blockPacked = binaryStringToByteArray(blockBits);
-            System.arraycopy(blockPacked, 0, entry, i, blockBytes);
-            i += blockBytes;
-
-            // Write codeword bits length
-            entry[i++] = (byte) codewordLenBits;
-
-            // Write codeword bits
-            byte[] codewordPacked = binaryStringToByteArray(codeword.toString());
-            System.arraycopy(codewordPacked, 0, entry, i, codewordBytes);
-
-            return entry;
-        }
-
+    /**
+     * Returns a sorted list of unique blocks, ordered by probability.
+     *
+     * @return List of unique blocks.
+     */
+    public ArrayList<Block> getBlocks() {
+        return unique;
     }
 
 }
