@@ -1,14 +1,17 @@
+import java.util.Arrays;
+
 public class Test {
 
     public static void main(String[] args) {
 
         Encoder encoder = new Encoder("asdf asdf".getBytes(), 16);
-        encoder.encode();
+        byte[] encoded = encoder.encode(false);
 
-        for (var block : encoder.getBlocks()) {
+        for (var block : encoder.getSourceBlocks()) {
             System.out.println(block);
         }
 
+        System.out.println(Arrays.toString(encoded));
 
     }
 

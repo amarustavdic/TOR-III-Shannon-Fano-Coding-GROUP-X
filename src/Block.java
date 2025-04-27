@@ -48,4 +48,9 @@ public class Block implements Comparable<Block> {
     public double getProbability() {
         return probability;
     }
+
+    public String getCodeword() {
+        return codeword.toString();
+    }
+
 }

@@ -16,6 +16,19 @@ public class Bits implements Iterable<Integer> {
         this.size = this.data.length * 8;
     }
 
+    public Bits(String bits) {
+        this.size = (int) Math.ceil((double) bits.length() / 8);
+        this.data = new byte[size];
+
+        for (int i = 0; i < size; i++) {
+            int start = i * 8;
+            int end = Math.min(start + 8, bits.length());
+            String byteString = bits.substring(start, end);
+            if (byteString.length() < 8) byteString = String.format("%-8s", byteString).replace(' ', '0');
+            this.data[i] = (byte) Integer.parseInt(byteString, 2);
+        }
+    }
+
     @Override
     public Iterator<Integer> iterator() {
         return new Iterator<>() {
@@ -57,8 +70,19 @@ public class Bits implements Iterable<Integer> {
         return StreamSupport.stream(spliterator(), false);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Integer integer : this) sb.append(integer);
+        return sb.toString();
+    }
+
     public int size() {
         return this.size;
+    }
+
+    public byte[] getBytes() {
+        return this.data;
     }
 
 }

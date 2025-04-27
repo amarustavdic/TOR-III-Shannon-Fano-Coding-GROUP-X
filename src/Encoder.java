@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Encoder {
 
@@ -37,9 +38,18 @@ public class Encoder {
 
     }
 
-    public byte[] encode() {
+    public byte[] encode(boolean codebook) {
+        // Most important part of the program
         shannonFano(unique, 0, unique.size() - 1);
 
+        // Combine codewords from source blocks (preserve order)
+        String encodedSource = blocks.stream().map(Block::getCodeword).collect(Collectors.joining());
+        Bits encodedBits = new Bits(encodedSource);
+
+        // Return just encoded data, exclude codebook
+        if (!codebook) return encodedBits.getBytes();
+
+        // Otherwise, include codebook, to be able to decode it too
         // TODO
 
         return null;
@@ -72,6 +82,15 @@ public class Encoder {
      */
     public ArrayList<Block> getBlocks() {
         return unique;
+    }
+
+    /**
+     * Returns a list of blocks in the same order as they appear in the source data.
+     *
+     * @return A LinkedList containing the blocks in the same order as the source data.
+     */
+    public LinkedList<Block> getSourceBlocks() {
+        return blocks;
     }
 
 }
