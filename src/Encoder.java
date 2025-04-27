@@ -1,3 +1,5 @@
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,7 @@ public class Encoder {
 
     }
 
-    public byte[] encode(boolean codebook) {
+    public byte[] encode(boolean codebook) throws IOException {
         // Most important part of the program
         shannonFano(unique, 0, unique.size() - 1);
 
@@ -50,9 +52,21 @@ public class Encoder {
         if (!codebook) return encodedBits.getBytes();
 
         // Otherwise, include codebook, to be able to decode it too
-        // TODO
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        return null;
+        // Write codebook header (number of entries)
+        out.write((unique.size() >> 24) & 0xFF);
+        out.write((unique.size() >> 16) & 0xFF);
+        out.write((unique.size() >> 8) & 0xFF);
+        out.write(unique.size() & 0xFF);
+
+        // Write each codebook entry
+        for (Block block : unique) {
+            byte[] entry = block.getCodebookEntry();
+            out.write(entry);
+        }
+        out.write(encodedBits.getBytes());
+        return out.toByteArray();
     }
 
     private void shannonFano(List<Block> blocks, int start, int end) {

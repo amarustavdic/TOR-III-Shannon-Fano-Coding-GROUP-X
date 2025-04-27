@@ -57,4 +57,30 @@ public class Block implements Comparable<Block> {
         return codeword.toString();
     }
 
+    public byte[] getCodebookEntry() {
+        int blockLenBits = bits.length();
+        int codewordLenBits = codeword.length();
+        int blockBytes = (int) Math.ceil(blockLenBits / 8.0);
+        int codewordBytes = (int) Math.ceil(codewordLenBits / 8.0);
+
+        int totalSize = 1 + blockBytes + 1 + codewordBytes;
+        byte[] entry = new byte[totalSize];
+        int i = 0;
+        entry[i++] = (byte) blockLenBits;
+
+        // Write block bits
+        byte[] blockPacked = new Bits(bits).getBytes();
+        System.arraycopy(blockPacked, 0, entry, i, blockBytes);
+        i += blockBytes;
+
+        // Write codeword bits length
+        entry[i++] = (byte) codewordLenBits;
+
+        // Write codeword bits
+        byte[] codewordPacked = new Bits(codeword.toString()).getBytes();
+        System.arraycopy(codewordPacked, 0, entry, i, codewordBytes);
+
+        return entry;
+    }
+
 }
