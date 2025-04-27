@@ -18,10 +18,7 @@ public class Encoder {
             sb.append(dbi.next() == 1 ? '1' : '0');
 
             if (sb.length() == 16) {
-                Block block = map.computeIfAbsent(
-                        sb.toString(),
-                        b -> new Block(sb.toString(), 16)
-                );
+                Block block = map.computeIfAbsent(sb.toString(), b -> new Block(sb.toString(), 16));
                 block.update(n);
                 blocks.add(block);
                 sb.setLength(0);
@@ -29,10 +26,7 @@ public class Encoder {
         }
 
         if (!sb.isEmpty()) {
-            Block block = map.computeIfAbsent(
-                    sb.toString(),
-                    b -> new Block(sb.toString(), 16)
-            );
+            Block block = map.computeIfAbsent(sb.toString(), b -> new Block(sb.toString(), 16));
             block.update(n);
             blocks.add(block);
         }
@@ -53,10 +47,8 @@ public class Encoder {
 
     private void shannonFano(List<Block> blocks, int start, int end) {
         if (start >= end) return;
-        double total = 0;
-        for (int i = start; i <= end; i++) total += blocks.get(i).getProbability();
-
-        double halfTotal = total / 2, sum = 0;
+        double halfTotal = blocks.subList(start, end + 1).stream().mapToDouble(Block::getProbability).sum() / 2;
+        double sum = 0;
         int split = start;
 
         // Find split point where the cumulative probability is closest to halfTotal
