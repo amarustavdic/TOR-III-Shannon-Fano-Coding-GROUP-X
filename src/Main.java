@@ -34,6 +34,10 @@ public class Main {
         System.out.println("Entropy: " + entropy + " bits");
 
 
+        System.out.println();
+        System.out.println("Codebook:");
+        for (var block : encoder.getBlocks()) System.out.println(block);
+
     }
 
 }
