@@ -1,12 +1,19 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-public class BitStream implements Iterable<Integer> {
+public class Bits implements Iterable<Integer> {
 
+    private final int size;
     private final byte[] data;
 
-    public BitStream(byte[] data) {
-        this.data = data;
+    public Bits(byte[] data) {
+        this.data = data.clone();
+        this.size = this.data.length * 8;
     }
 
     @Override
@@ -34,6 +41,24 @@ public class BitStream implements Iterable<Integer> {
                 return bit;
             }
         };
+    }
+
+    @Override
+    public void forEach(Consumer<? super Integer> action) {
+        iterator().forEachRemaining(action);
+    }
+
+    @Override
+    public Spliterator<Integer> spliterator() {
+        return Spliterators.spliterator(iterator(), size, Spliterator.ORDERED | Spliterator.SIZED | Spliterator.NONNULL);
+    }
+
+    public Stream<Integer> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    public int size() {
+        return this.size;
     }
 
 }
